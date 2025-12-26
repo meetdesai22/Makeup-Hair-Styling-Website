@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - Makeup & Hair Styling</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-paint-brush"></i>
+                <span class="logo-text">Beauty Studio</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/gallery">Gallery</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/booking" class="btn-booking active">Book Now</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Booking Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Book Your Appointment</h1>
+            <p>Fill out the form below to request your booking</p>
+        </div>
+    </section>
+
+    <!-- Booking Section -->
+    <section class="booking-section">
+        <div class="container">
+            <div class="booking-wrapper">
+                <div class="booking-info">
+                    <h2>Booking Information</h2>
+                    <div class="info-card">
+                        <i class="fas fa-clock"></i>
+                        <h3>Available Hours</h3>
+                        <p>Monday - Saturday: 9:00 AM - 7:00 PM</p>
+                        <p>Sunday: By appointment only</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-calendar-check"></i>
+                        <h3>Booking Process</h3>
+                        <p>1. Fill out the booking form</p>
+                        <p>2. We'll confirm your appointment</p>
+                        <p>3. You'll receive a confirmation email</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-info-circle"></i>
+                        <h3>Important Notes</h3>
+                        <p>• Please book at least 48 hours in advance</p>
+                        <p>• Cancellations must be made 24 hours prior</p>
+                        <p>• Trial sessions available for bridal packages</p>
+                    </div>
+                </div>
+                <div class="booking-form-wrapper">
+                    <h2>Appointment Request</h2>
+                    <form class="booking-form" id="bookingForm">
+                        <div class="form-group">
+                            <label for="booking-name">Full Name *</label>
+                            <input type="text" id="booking-name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-email">Email Address *</label>
+                            <input type="email" id="booking-email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-phone">Phone Number *</label>
+                            <input type="tel" id="booking-phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-date">Preferred Date *</label>
+                            <input type="date" id="booking-date" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-time">Preferred Time *</label>
+                            <select id="booking-time" name="time" required>
+                                <option value="">Select a time</option>
+                                <option value="9:00 AM">9:00 AM</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="1:00 PM">1:00 PM</option>
+                                <option value="2:00 PM">2:00 PM</option>
+                                <option value="3:00 PM">3:00 PM</option>
+                                <option value="4:00 PM">4:00 PM</option>
+                                <option value="5:00 PM">5:00 PM</option>
+                                <option value="6:00 PM">6:00 PM</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-service">Service Type *</label>
+                            <select id="booking-service" name="service" required>
+                                <option value="">Select a service</option>
+                                <option value="Makeup Only">Makeup Only</option>
+                                <option value="Hair Styling Only">Hair Styling Only</option>
+                                <option value="Makeup + Hair">Makeup + Hair</option>
+                                <option value="Bridal Package">Bridal Package</option>
+                                <option value="Bridal Trial">Bridal Trial</option>
+                                <option value="Photoshoot Makeup">Photoshoot Makeup</option>
+                                <option value="Event Makeup">Event Makeup</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="booking-additional-message">Additional Message</label>
+                            <textarea id="booking-additional-message" name="message" rows="4" placeholder="Any special requests or details about your event..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large">Submit Booking Request</button>
+                    </form>
+                    <div id="booking-message" class="form-message"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Beauty Studio</h3>
+                    <p>Professional makeup and hair styling services</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/gallery">Gallery</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                        <li><a href="/booking">Booking</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> <span id="footer-email">contact@beautystudio.com</span></p>
+                    <p><i class="fas fa-phone"></i> <span id="footer-phone">+1 (555) 123-4567</span></p>
+                    <p><i class="fas fa-map-marker-alt"></i> <span id="footer-location">Your City, State</span></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-icons">
+                        <a href="#" id="footer-instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Beauty Studio. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="booking.js"></script>
+</body>
+</html>
+

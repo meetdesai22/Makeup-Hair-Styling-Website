@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - Makeup & Hair Styling</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-paint-brush"></i>
+                <span class="logo-text">Makeup by Khyati</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/gallery" class="active">Gallery</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/booking" class="btn-booking">Book Now</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Gallery Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Our Work</h1>
+            <p>Showcasing beautiful transformations and stunning looks</p>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="gallery-section">
+        <div class="container">
+            <div class="gallery-filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="makeup">Makeup</button>
+                <button class="filter-btn" data-filter="hair">Hair Styling</button>
+                <button class="filter-btn" data-filter="bridal">Bridal</button>
+                <button class="filter-btn" data-filter="photoshoot">Photoshoot</button>
+            </div>
+
+            <div class="gallery-grid" id="gallery-grid">
+                <!-- Gallery items will be dynamically loaded from API -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    <p style="margin-top: 1rem; color: var(--text-light);">Loading gallery...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Love What You See?</h2>
+            <p>Book your appointment and let's create your perfect look</p>
+            <a href="/booking" class="btn btn-primary btn-large">Book Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Beauty Studio</h3>
+                    <p>Professional makeup and hair styling services</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/gallery">Gallery</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                        <li><a href="/booking">Booking</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> <span id="footer-email">contact@beautystudio.com</span></p>
+                    <p><i class="fas fa-phone"></i> <span id="footer-phone">+1 (555) 123-4567</span></p>
+                    <p><i class="fas fa-map-marker-alt"></i> <span id="footer-location">Your City, State</span></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-icons">
+                        <a href="#" id="footer-instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Beauty Studio. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="gallery.js"></script>
+</body>
+</html>
+

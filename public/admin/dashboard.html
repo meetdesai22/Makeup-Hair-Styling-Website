@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="admin-body">
+    <nav class="admin-nav">
+        <div class="admin-nav-content">
+            <h2><i class="fas fa-palette"></i> Admin Panel</h2>
+            <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <div class="admin-sidebar">
+            <ul class="admin-menu">
+                <li><a href="#config" class="admin-menu-item active" data-section="config">
+                    <i class="fas fa-cog"></i> Configuration
+                </a></li>
+                <li><a href="#gallery" class="admin-menu-item" data-section="gallery">
+                    <i class="fas fa-images"></i> Gallery
+                </a></li>
+                <li><a href="#password" class="admin-menu-item" data-section="password">
+                    <i class="fas fa-key"></i> Change Password
+                </a></li>
+            </ul>
+        </div>
+
+        <div class="admin-content">
+            <!-- Configuration Section -->
+            <section id="config-section" class="admin-section active">
+                <h2>Website Configuration</h2>
+                <form id="configForm" class="admin-form">
+                    <div class="form-group">
+                        <label for="businessName">Business Name</label>
+                        <input type="text" id="businessName" name="businessName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" name="location" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="instagram">Instagram URL</label>
+                        <input type="url" id="instagram" name="instagram" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                </form>
+                <div id="config-message" class="form-message"></div>
+
+                <div class="upload-section" style="margin-top: 3rem;">
+                    <h3>Hero Image</h3>
+                    <div id="hero-image-preview" style="margin-bottom: 1rem;">
+                        <img id="hero-preview-img" src="" alt="Hero Image Preview" style="max-width: 100%; max-height: 300px; border-radius: 10px; display: none;">
+                    </div>
+                    <form id="heroImageForm" class="admin-form" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="heroImageFile">Hero Image File</label>
+                            <input type="file" id="heroImageFile" name="heroImage" accept="image/*">
+                            <small>Max size: 10MB. This image appears on the homepage hero section.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Hero Image</button>
+                    </form>
+                    <div id="hero-image-message" class="form-message"></div>
+                </div>
+            </section>
+
+            <!-- Gallery Section -->
+            <section id="gallery-section" class="admin-section">
+                <h2>Gallery Management</h2>
+                
+                <div class="upload-section">
+                    <h3>Upload New Image</h3>
+                    <form id="uploadForm" class="admin-form" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="imageFile">Image File</label>
+                            <input type="file" id="imageFile" name="image" accept="image/*" required>
+                            <small>Max size: 10MB. Formats: JPG, PNG, GIF, WebP</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="imageTitle">Title</label>
+                            <input type="text" id="imageTitle" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="imageCategory">Category</label>
+                            <select id="imageCategory" name="category" required>
+                                <option value="makeup">Makeup</option>
+                                <option value="hair">Hair Styling</option>
+                                <option value="bridal">Bridal</option>
+                                <option value="photoshoot">Photoshoot</option>
+                                <option value="all">All</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Image</button>
+                    </form>
+                    <div id="upload-message" class="form-message"></div>
+                </div>
+
+                <div class="gallery-list-section">
+                    <h3>Gallery Items</h3>
+                    <div id="gallery-list" class="gallery-list"></div>
+                </div>
+            </section>
+
+            <!-- Password Section -->
+            <section id="password-section" class="admin-section">
+                <h2>Change Admin Password</h2>
+                <form id="passwordForm" class="admin-form">
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                        <small>Minimum 6 characters</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </form>
+                <div id="password-message" class="form-message"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="admin-dashboard.js"></script>
+</body>
+</html>
+

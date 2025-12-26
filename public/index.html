@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Makeup & Hair Styling - Professional Beauty Services</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-paint-brush"></i>
+                <span class="logo-text">Makeup by Khyati</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="active">Home</a></li>
+                <li><a href="/gallery">Gallery</a></li>
+                <li><a href="/contact">Contact</a></li>
+                <li><a href="/booking" class="btn-booking">Book Now</a></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Transform Your Look</h1>
+            <p class="hero-subtitle">Professional Makeup & Hair Styling Services</p>
+            <p class="hero-description">Bringing out your natural beauty with expert techniques and premium products</p>
+            <div class="hero-buttons">
+                <a href="/booking" class="btn btn-primary">Book Appointment</a>
+                <a href="/gallery" class="btn btn-secondary">View Gallery</a>
+            </div>
+        </div>
+        <div class="hero-image" id="hero-image-container">
+            <div class="hero-overlay"></div>
+        </div>
+    </section>
+
+    <!-- Gallery Carousel Section -->
+    <section class="carousel-section">
+        <div class="container">
+            <h2 class="section-title">Featured Work</h2>
+            <div class="carousel-container">
+                <div class="carousel-wrapper">
+                    <div class="carousel-track" id="carousel-track">
+                        <!-- Carousel items will be loaded dynamically -->
+                    </div>
+                </div>
+                <button class="carousel-btn carousel-btn-prev" id="carousel-prev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="carousel-btn carousel-btn-next" id="carousel-next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services">
+        <div class="container">
+            <h2 class="section-title">Our Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-paint-brush"></i>
+                    </div>
+                    <h3>Makeup Services</h3>
+                    <p>Professional makeup application for weddings, events, photoshoots, and special occasions</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-cut"></i>
+                    </div>
+                    <h3>Hair Styling</h3>
+                    <p>Expert hair styling, updos, braids, and hair extensions for any occasion</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-sparkles"></i>
+                    </div>
+                    <h3>Bridal Packages</h3>
+                    <p>Complete bridal makeup and hair packages with trial sessions included</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3>Photoshoot Ready</h3>
+                    <p>Makeup and styling services tailored for professional photoshoots</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>About Me</h2>
+                    <p>With years of experience in the beauty industry, I specialize in creating stunning looks that enhance your natural features. Whether it's a glamorous evening look, a natural everyday style, or a complete bridal transformation, I'm here to make you feel confident and beautiful.</p>
+                    <p>I use only premium, high-quality products and stay updated with the latest trends and techniques in makeup and hair styling.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" id="instagram-link">
+                            <i class="fab fa-instagram"></i>
+                            <span>Follow on Instagram</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Look Your Best?</h2>
+            <p>Book your appointment today and let's create something beautiful together</p>
+            <a href="/booking" class="btn btn-primary btn-large">Book Your Appointment</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Beauty Studio</h3>
+                    <p>Professional makeup and hair styling services</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/gallery">Gallery</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                        <li><a href="/booking">Booking</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> <span id="footer-email">contact@beautystudio.com</span></p>
+                    <p><i class="fas fa-phone"></i> <span id="footer-phone">+1 (555) 123-4567</span></p>
+                    <p><i class="fas fa-map-marker-alt"></i> <span id="footer-location">Your City, State</span></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Follow Us</h4>
+                    <div class="social-icons">
+                        <a href="#" id="footer-instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Beauty Studio. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
