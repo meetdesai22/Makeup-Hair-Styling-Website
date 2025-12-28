@@ -743,13 +743,14 @@ h1, h2, h3, h4, h5, h6 {
 .carousel-wrapper {
     overflow: hidden;
     border-radius: 15px;
+    position: relative;
+    width: 100%;
 }
 
 .carousel-track {
     display: flex;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.5s ease-in-out;
     will-change: transform;
-    contain: layout style paint;
 }
 
 .carousel-item {
@@ -757,6 +758,7 @@ h1, h2, h3, h4, h5, h6 {
     min-width: 33.333%;
     padding: 0 0.75rem;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .carousel-item > div {
@@ -764,6 +766,7 @@ h1, h2, h3, h4, h5, h6 {
     overflow: hidden;
     box-shadow: 0 5px 15px var(--shadow);
     height: 100%;
+    background: var(--white);
 }
 
 .carousel-item img {
@@ -772,9 +775,14 @@ h1, h2, h3, h4, h5, h6 {
     object-fit: cover;
     display: block;
     background: var(--accent-color);
+    min-height: 400px;
 }
 
 .carousel-item img[src=""] {
+    display: none;
+}
+
+.carousel-item img:not([src]) {
     display: none;
 }
 

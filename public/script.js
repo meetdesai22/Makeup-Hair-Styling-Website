@@ -114,131 +114,113 @@ async function loadHeroImage() {
     }
 }
 
-// Initialize carousel
-let carouselPosition = 0;
-let carouselInterval;
+// Carousel implementation - Simple and clean
+let currentSlide = 0;
+let totalSlides = 0;
+let galleryData = [];
 
 async function initCarousel() {
     try {
         const response = await fetch('/api/gallery');
-        const gallery = await response.json();
+        galleryData = await response.json();
         const carouselTrack = document.getElementById('carousel-track');
         
-        if (!carouselTrack) return;
-        
-        if (gallery.length === 0) {
-            carouselTrack.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--text-light);">No gallery items yet.</p>';
+        if (!carouselTrack) {
+            console.error('Carousel track element not found');
             return;
         }
         
-        // Duplicate items for infinite scroll (need at least 3 sets for smooth infinite scroll)
-        const items = [...gallery, ...gallery, ...gallery];
+        if (galleryData.length === 0) {
+            carouselTrack.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-light); width: 100%;"><p>No gallery items yet.</p><p style="margin-top: 0.5rem; font-size: 0.9rem;">Upload images in the admin panel to see them here!</p></div>';
+            return;
+        }
         
-        // Use DocumentFragment for better performance
+        totalSlides = galleryData.length;
+        currentSlide = 0;
+        
+        // Clear existing content
+        carouselTrack.innerHTML = '';
+        
+        // Create carousel items
         const fragment = document.createDocumentFragment();
-        items.forEach((item, index) => {
+        galleryData.forEach((item, index) => {
             const carouselItem = document.createElement('div');
             carouselItem.className = 'carousel-item';
+            carouselItem.setAttribute('data-index', index);
+            
+            const wrapperDiv = document.createElement('div');
+            
             const img = document.createElement('img');
-            img.src = item.image;
+            const imagePath = item.image.startsWith('/') ? item.image : '/' + item.image;
+            img.src = imagePath;
             img.alt = item.title || 'Gallery image';
-            img.loading = 'lazy';
+            img.loading = index < 3 ? 'eager' : 'lazy';
             img.decoding = 'async';
+            
             img.onerror = function() {
-                console.error('Failed to load image:', item.image);
+                console.error('Failed to load carousel image:', imagePath);
                 this.style.display = 'none';
+                const placeholder = document.createElement('div');
+                placeholder.style.cssText = 'width: 100%; height: 400px; background: var(--accent-color); display: flex; align-items: center; justify-content: center; flex-direction: column;';
+                placeholder.innerHTML = '<i class="fas fa-image" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 0.5rem;"></i><p style="color: var(--text-light); font-size: 0.9rem;">Image not found</p>';
+                this.parentElement.replaceChild(placeholder, this);
             };
-            const div = document.createElement('div');
-            div.appendChild(img);
-            carouselItem.appendChild(div);
+            
+            img.onload = function() {
+                console.log('Carousel image loaded:', imagePath);
+            };
+            
+            wrapperDiv.appendChild(img);
+            carouselItem.appendChild(wrapperDiv);
             fragment.appendChild(carouselItem);
         });
+        
         carouselTrack.appendChild(fragment);
         
-        // Start at middle set for infinite scroll
-        carouselPosition = gallery.length;
-        carouselTrack.style.transform = `translateX(-${carouselPosition * 33.333}%)`;
+        // Set initial position
+        updateCarouselPosition();
         
-        // Set up navigation - always enable buttons
+        // Set up navigation buttons
         const prevBtn = document.getElementById('carousel-prev');
         const nextBtn = document.getElementById('carousel-next');
         
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
-                clearInterval(carouselInterval);
-                moveCarousel(-1, gallery.length);
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                updateCarouselPosition();
             });
         }
+        
         if (nextBtn) {
             nextBtn.addEventListener('click', () => {
-                clearInterval(carouselInterval);
-                moveCarousel(1, gallery.length);
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateCarouselPosition();
             });
         }
         
-        // Auto-play carousel if there are multiple items
-        if (gallery.length > 1) {
-            startCarouselAutoPlay(gallery.length);
-        }
-        
-        // Pause on hover
-        const carouselContainer = document.querySelector('.carousel-container');
-        if (carouselContainer) {
-            carouselContainer.addEventListener('mouseenter', () => clearInterval(carouselInterval));
-            carouselContainer.addEventListener('mouseleave', () => {
-                if (gallery.length > 1) {
-                    startCarouselAutoPlay(gallery.length);
-                }
-            });
-        }
+        console.log('Carousel initialized with', totalSlides, 'items');
     } catch (error) {
         console.error('Error loading carousel:', error);
+        const carouselTrack = document.getElementById('carousel-track');
+        if (carouselTrack) {
+            carouselTrack.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--text-light); width: 100%;"><p>Error loading gallery. Please refresh the page.</p></div>';
+        }
     }
 }
 
-function moveCarousel(direction, itemCount) {
+function updateCarouselPosition() {
     const carouselTrack = document.getElementById('carousel-track');
-    if (!carouselTrack || itemCount === 0) return;
+    if (!carouselTrack) return;
     
-    carouselPosition += direction;
+    // Calculate how many items to show per view (3 on desktop, 2 on mobile)
+    const itemsPerView = window.innerWidth <= 768 ? 2 : 3;
     
-    // Reset position for infinite scroll
-    if (carouselPosition >= itemCount * 2) {
-        carouselPosition = itemCount;
-        // Jump to middle set without animation
-        carouselTrack.style.transition = 'none';
-        carouselTrack.style.transform = `translateX(-${itemCount * 33.333}%)`;
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                carouselTrack.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            });
-        });
-        return;
-    } else if (carouselPosition < itemCount) {
-        carouselPosition = itemCount * 2 - 1;
-        // Jump to middle set without animation
-        carouselTrack.style.transition = 'none';
-        carouselTrack.style.transform = `translateX(-${(itemCount * 2 - 1) * 33.333}%)`;
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                carouselTrack.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            });
-        });
-        return;
-    }
+    // Calculate offset based on current slide
+    // We want to show 3 items at a time, so we move by item width
+    const offset = -(currentSlide * (100 / itemsPerView));
     
-    // Normal movement
-    carouselTrack.style.transition = 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-    requestAnimationFrame(() => {
-        carouselTrack.style.transform = `translateX(-${carouselPosition * 33.333}%)`;
-    });
-}
-
-function startCarouselAutoPlay(itemCount) {
-    clearInterval(carouselInterval);
-    carouselInterval = setInterval(() => {
-        moveCarousel(1, itemCount);
-    }, 4000); // Change slide every 4 seconds (reduced frequency for performance)
+    carouselTrack.style.transform = `translateX(${offset}%)`;
+    carouselTrack.style.transition = 'transform 0.5s ease-in-out';
 }
 
 // Initialize scroll animations with performance optimization

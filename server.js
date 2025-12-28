@@ -29,7 +29,13 @@ app.use(session({
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '1d', // Cache for 1 day
+    etag: true,
+    lastModified: true
+}));
 
 // Multer configuration for file uploads
 const storage = multer.diskStorage({
@@ -134,7 +140,13 @@ app.get('/api/config', (req, res) => {
 });
 
 app.get('/api/gallery', (req, res) => {
-    res.json(getGallery());
+    const gallery = getGallery();
+    // Ensure all image paths are correct
+    const galleryWithPaths = gallery.map(item => ({
+        ...item,
+        image: item.image.startsWith('/') ? item.image : '/' + item.image
+    }));
+    res.json(galleryWithPaths);
 });
 
 // Admin Routes

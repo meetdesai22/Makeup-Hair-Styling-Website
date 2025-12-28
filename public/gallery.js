@@ -23,12 +23,15 @@ async function loadGallery() {
             itemDiv.setAttribute('data-category', item.category);
             
             const img = document.createElement('img');
-            img.src = item.image;
+            // Ensure image path is correct
+            const imagePath = item.image.startsWith('/') ? item.image : '/' + item.image;
+            img.src = imagePath;
             img.alt = item.title;
             img.loading = 'lazy';
             img.decoding = 'async';
             img.fetchPriority = 'low';
             img.onerror = function() {
+                console.error('Failed to load gallery image:', imagePath);
                 this.style.display = 'none';
                 const placeholder = document.createElement('div');
                 placeholder.className = 'placeholder-image';
