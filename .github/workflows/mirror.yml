@@ -16,7 +16,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Mirror to target repo
-        run: |
-          git remote add mirror https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/coolmeet123/Makeup-Hair-Styling-Website.git
-          git push --mirror mirror
+- name: Mirror to target repo
+  run: |
+    git remote remove mirror || true
+    git remote add mirror https://x-access-token:${{ secrets.TARGET_REPO_TOKEN }}@github.com/coolmeet123/Makeup-Hair-Styling-Website.git
+    git push --mirror mirror
+
