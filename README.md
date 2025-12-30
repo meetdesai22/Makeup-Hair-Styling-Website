@@ -53,6 +53,8 @@ To log bookings to Google Sheets:
 
 ## Running the Application
 
+### Local Development
+
 Start the server:
 ```bash
 npm start
@@ -64,6 +66,22 @@ npm run dev
 ```
 
 The website will be available at `http://localhost:3001`
+
+**Note:** Local development uses filesystem storage (`/data` directory) and memory sessions.
+
+### Production Deployment (Vercel)
+
+This application is configured for deployment on Vercel with:
+- **Vercel KV** for data storage (config, gallery, passwords)
+- **Vercel Blob Storage** for file uploads
+- **Redis sessions** for persistent authentication
+
+See **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** for complete deployment instructions.
+
+Quick steps:
+1. Set up Vercel KV and Blob Storage in Vercel dashboard
+2. Configure environment variables
+3. Deploy from GitHub
 
 ## Customization
 
@@ -90,19 +108,27 @@ All styles are in `public/styles.css`. The color scheme uses CSS variables defin
 
 ```
 Website/
-├── server.js              # Express server and API routes
-├── package.json           # Dependencies
+├── server.js              # Express server for local development
+├── api/
+│   └── index.js          # Serverless function for Vercel
+├── lib/
+│   ├── storage.js        # Storage abstraction (KV/Blob/filesystem)
+│   └── session-store.js  # Session store (Redis/memory)
+├── package.json          # Dependencies
+├── vercel.json           # Vercel configuration
 ├── .env.example          # Environment variables template
 ├── public/
 │   ├── index.html        # Home page
 │   ├── gallery.html      # Gallery page
 │   ├── contact.html      # Contact page
 │   ├── booking.html      # Booking page
+│   ├── admin/            # Admin panel
 │   ├── styles.css        # All styles
 │   ├── script.js         # Main JavaScript
 │   ├── gallery.js        # Gallery functionality
 │   ├── contact.js        # Contact form handling
 │   └── booking.js        # Booking form handling
+├── DEPLOYMENT_GUIDE.md   # Complete deployment instructions
 └── README.md             # This file
 ```
 

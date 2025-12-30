@@ -6,50 +6,47 @@ const { google } = require('googleapis');
 const multer = require('multer');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-const fs = require('fs-extra');
+
+// Import storage abstraction and session store
+const storage = require('../lib/storage');
+const sessionStore = require('../lib/session-store');
 
 const app = express();
 
-// Ensure data directory exists
-const dataDir = path.join(__dirname, '..', 'data');
-const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
-fs.ensureDirSync(dataDir);
-fs.ensureDirSync(uploadsDir);
-
-// Session configuration - use memory store for serverless
-// Note: Sessions won't persist across serverless function invocations
-// For production, consider using an external session store (Redis, etc.)
-app.use(session({
+// Session configuration
+const sessionConfig = {
     secret: process.env.SESSION_SECRET || 'your-secret-key-change-this-in-production',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'none' } // 24 hours, secure for HTTPS
-}));
+    cookie: { 
+        secure: process.env.VERCEL === '1', // Secure cookies on Vercel (HTTPS)
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: process.env.VERCEL === '1' ? 'none' : 'lax',
+        httpOnly: true
+    }
+};
+
+// Use Redis store if available, otherwise use memory store
+if (sessionStore) {
+    sessionConfig.store = sessionStore;
+}
+
+app.use(session(sessionConfig));
 
 // Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, '..', 'public'), {
-    maxAge: '1d', // Cache for 1 day
+    maxAge: '1d',
     etag: true,
     lastModified: true
 }));
 
-// Multer configuration for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadsDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'gallery-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
+// Multer configuration for file uploads (memory storage for serverless)
 const upload = multer({
-    storage: storage,
+    storage: multer.memoryStorage(), // Store in memory, then upload to blob storage
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
     fileFilter: (req, file, cb) => {
         const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -63,52 +60,6 @@ const upload = multer({
     }
 });
 
-// Helper functions to read/write data
-function getConfig() {
-    const configPath = path.join(dataDir, 'config.json');
-    if (fs.existsSync(configPath)) {
-        return JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    }
-    return {
-        businessName: 'Beauty Studio',
-        email: 'contact@beautystudio.com',
-        phone: '+1 (555) 123-4567',
-        location: 'Your City, State',
-        instagram: 'https://instagram.com/beautystudio',
-        heroImage: ''
-    };
-}
-
-function saveConfig(config) {
-    const configPath = path.join(dataDir, 'config.json');
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-}
-
-function getGallery() {
-    const galleryPath = path.join(dataDir, 'gallery.json');
-    if (fs.existsSync(galleryPath)) {
-        return JSON.parse(fs.readFileSync(galleryPath, 'utf8'));
-    }
-    return [];
-}
-
-function saveGallery(gallery) {
-    const galleryPath = path.join(dataDir, 'gallery.json');
-    fs.writeFileSync(galleryPath, JSON.stringify(gallery, null, 2));
-}
-
-function getPasswordHash() {
-    const passwordPath = path.join(dataDir, 'password.json');
-    if (fs.existsSync(passwordPath)) {
-        const data = JSON.parse(fs.readFileSync(passwordPath, 'utf8'));
-        return data.hash;
-    }
-    // Default password: "admin123" - CHANGE THIS!
-    const defaultHash = bcrypt.hashSync('admin123', 10);
-    fs.writeFileSync(passwordPath, JSON.stringify({ hash: defaultHash }, null, 2));
-    return defaultHash;
-}
-
 // Authentication middleware
 function requireAuth(req, res, next) {
     if (req.session && req.session.authenticated) {
@@ -117,7 +68,8 @@ function requireAuth(req, res, next) {
     res.status(401).json({ error: 'Unauthorized' });
 }
 
-// Public Routes
+// ==================== Public Routes ====================
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
@@ -134,22 +86,37 @@ app.get('/booking', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'booking.html'));
 });
 
-// API Routes - Public
-app.get('/api/config', (req, res) => {
-    res.json(getConfig());
+// ==================== Public API Routes ====================
+
+app.get('/api/config', async (req, res) => {
+    try {
+        const config = await storage.getConfig();
+        res.json(config);
+    } catch (error) {
+        console.error('Error getting config:', error);
+        res.status(500).json({ error: 'Failed to load configuration' });
+    }
 });
 
-app.get('/api/gallery', (req, res) => {
-    const gallery = getGallery();
-    // Ensure all image paths are correct
-    const galleryWithPaths = gallery.map(item => ({
-        ...item,
-        image: item.image.startsWith('/') ? item.image : '/' + item.image
-    }));
-    res.json(galleryWithPaths);
+app.get('/api/gallery', async (req, res) => {
+    try {
+        const gallery = await storage.getGallery();
+        // Ensure all image paths are correct
+        const galleryWithPaths = gallery.map(item => ({
+            ...item,
+            image: item.image && (item.image.startsWith('http') || item.image.startsWith('/')) 
+                ? item.image 
+                : '/' + (item.image || '')
+        }));
+        res.json(galleryWithPaths);
+    } catch (error) {
+        console.error('Error getting gallery:', error);
+        res.status(500).json({ error: 'Failed to load gallery' });
+    }
 });
 
-// Admin Routes
+// ==================== Admin Routes ====================
+
 app.get('/admin', (req, res) => {
     if (req.session && req.session.authenticated) {
         res.sendFile(path.join(__dirname, '..', 'public', 'admin', 'dashboard.html'));
@@ -159,11 +126,16 @@ app.get('/admin', (req, res) => {
 });
 
 app.post('/api/admin/login', async (req, res) => {
-    const { password } = req.body;
-    const hash = getPasswordHash();
-    
     try {
+        const { password } = req.body;
+        
+        if (!password) {
+            return res.status(400).json({ success: false, error: 'Password is required' });
+        }
+        
+        const hash = await storage.getPasswordHash();
         const match = await bcrypt.compare(password, hash);
+        
         if (match) {
             req.session.authenticated = true;
             res.json({ success: true });
@@ -171,140 +143,174 @@ app.post('/api/admin/login', async (req, res) => {
             res.status(401).json({ success: false, error: 'Invalid password' });
         }
     } catch (error) {
+        console.error('Login error:', error);
         res.status(500).json({ success: false, error: 'Login error' });
     }
 });
 
 app.post('/api/admin/logout', (req, res) => {
-    req.session.destroy();
-    res.json({ success: true });
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).json({ success: false, error: 'Logout failed' });
+        }
+        res.json({ success: true });
+    });
 });
 
-app.get('/api/admin/config', requireAuth, (req, res) => {
-    res.json(getConfig());
-});
-
-app.post('/api/admin/config', requireAuth, (req, res) => {
+app.get('/api/admin/config', requireAuth, async (req, res) => {
     try {
-        saveConfig(req.body);
+        const config = await storage.getConfig();
+        res.json(config);
+    } catch (error) {
+        console.error('Error getting admin config:', error);
+        res.status(500).json({ error: 'Failed to load configuration' });
+    }
+});
+
+app.post('/api/admin/config', requireAuth, async (req, res) => {
+    try {
+        await storage.saveConfig(req.body);
         res.json({ success: true });
     } catch (error) {
+        console.error('Error saving config:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.post('/api/admin/hero-image', requireAuth, (req, res, next) => {
-    upload.single('heroImage')(req, res, (err) => {
-        if (err) {
-            if (err instanceof multer.MulterError) {
-                if (err.code === 'LIMIT_FILE_SIZE') {
-                    return res.status(400).json({ success: false, error: 'File too large. Maximum size is 10MB.' });
-                }
-                return res.status(400).json({ success: false, error: err.message });
-            }
-            return res.status(400).json({ success: false, error: err.message });
+app.post('/api/admin/hero-image', requireAuth, upload.single('heroImage'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No image file provided' });
         }
 
-        try {
-            if (!req.file) {
-                return res.status(400).json({ success: false, error: 'No image file provided' });
+        const config = await storage.getConfig();
+        
+        // Delete old hero image if exists
+        if (config.heroImage) {
+            try {
+                await storage.deleteFile(config.heroImage);
+            } catch (error) {
+                console.warn('Error deleting old hero image:', error);
+                // Continue even if deletion fails
             }
-
-            const config = getConfig();
-            // Delete old hero image if exists
-            if (config.heroImage && config.heroImage.startsWith('/uploads/')) {
-                const oldImagePath = path.join(__dirname, '..', 'public', config.heroImage);
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);
-                }
-            }
-
-            config.heroImage = '/uploads/' + req.file.filename;
-            saveConfig(config);
-            res.json({ success: true, heroImage: config.heroImage });
-        } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
         }
-    });
+
+        // Upload new image
+        const filename = `hero-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(req.file.originalname)}`;
+        const imageUrl = await storage.uploadFile(
+            req.file.buffer,
+            filename,
+            req.file.mimetype
+        );
+
+        config.heroImage = imageUrl;
+        await storage.saveConfig(config);
+        
+        res.json({ success: true, heroImage: imageUrl });
+    } catch (error) {
+        console.error('Error uploading hero image:', error);
+        res.status(500).json({ success: false, error: error.message || 'Failed to upload image' });
+    }
 });
 
 app.post('/api/admin/password', requireAuth, async (req, res) => {
-    const { newPassword } = req.body;
     try {
+        const { newPassword } = req.body;
+        
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+        }
+        
         const hash = await bcrypt.hash(newPassword, 10);
-        const passwordPath = path.join(dataDir, 'password.json');
-        fs.writeFileSync(passwordPath, JSON.stringify({ hash }, null, 2));
+        await storage.savePasswordHash(hash);
         res.json({ success: true });
     } catch (error) {
+        console.error('Error changing password:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.get('/api/admin/gallery', requireAuth, (req, res) => {
-    res.json(getGallery());
-});
-
-app.post('/api/admin/gallery', requireAuth, (req, res, next) => {
-    upload.single('image')(req, res, (err) => {
-        if (err) {
-            // Handle Multer errors
-            if (err instanceof multer.MulterError) {
-                if (err.code === 'LIMIT_FILE_SIZE') {
-                    return res.status(400).json({ success: false, error: 'File too large. Maximum size is 10MB. Please compress your image or use a smaller file.' });
-                }
-                return res.status(400).json({ success: false, error: err.message });
-            }
-            // Handle other upload errors
-            return res.status(400).json({ success: false, error: err.message });
-        }
-
-        try {
-            if (!req.file) {
-                return res.status(400).json({ success: false, error: 'No image file provided' });
-            }
-
-            const gallery = getGallery();
-            const newItem = {
-                id: Date.now().toString(),
-                image: '/uploads/' + req.file.filename,
-                category: req.body.category || 'all',
-                title: req.body.title || 'Gallery Item',
-                order: gallery.length
-            };
-
-            gallery.push(newItem);
-            saveGallery(gallery);
-            res.json({ success: true, item: newItem });
-        } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
-        }
-    });
-});
-
-app.delete('/api/admin/gallery/:id', requireAuth, (req, res) => {
+app.get('/api/admin/gallery', requireAuth, async (req, res) => {
     try {
-        const gallery = getGallery();
+        const gallery = await storage.getGallery();
+        res.json(gallery);
+    } catch (error) {
+        console.error('Error getting admin gallery:', error);
+        res.status(500).json({ error: 'Failed to load gallery' });
+    }
+});
+
+app.post('/api/admin/gallery', requireAuth, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No image file provided' });
+        }
+
+        // Upload image to storage
+        const filename = `gallery-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(req.file.originalname)}`;
+        const imageUrl = await storage.uploadFile(
+            req.file.buffer,
+            filename,
+            req.file.mimetype
+        );
+
+        const gallery = await storage.getGallery();
+        const newItem = {
+            id: Date.now().toString(),
+            image: imageUrl,
+            category: req.body.category || 'all',
+            title: req.body.title || 'Gallery Item',
+            order: gallery.length
+        };
+
+        gallery.push(newItem);
+        await storage.saveGallery(gallery);
+        
+        res.json({ success: true, item: newItem });
+    } catch (error) {
+        console.error('Error uploading gallery image:', error);
+        
+        // Handle specific error types
+        if (error.message && error.message.includes('File too large')) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'File too large. Maximum size is 10MB. Please compress your image or use a smaller file.' 
+            });
+        }
+        
+        res.status(500).json({ success: false, error: error.message || 'Failed to upload image' });
+    }
+});
+
+app.delete('/api/admin/gallery/:id', requireAuth, async (req, res) => {
+    try {
+        const gallery = await storage.getGallery();
         const item = gallery.find(i => i.id === req.params.id);
         
-        if (item) {
+        if (item && item.image) {
             // Delete the image file
-            const imagePath = path.join(__dirname, '..', 'public', item.image);
-            if (fs.existsSync(imagePath)) {
-                fs.unlinkSync(imagePath);
+            try {
+                await storage.deleteFile(item.image);
+            } catch (error) {
+                console.warn('Error deleting image file:', error);
+                // Continue even if file deletion fails
             }
         }
 
         const filtered = gallery.filter(i => i.id !== req.params.id);
-        saveGallery(filtered);
+        await storage.saveGallery(filtered);
+        
         res.json({ success: true });
     } catch (error) {
+        console.error('Error deleting gallery item:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.put('/api/admin/gallery/:id', requireAuth, (req, res) => {
+app.put('/api/admin/gallery/:id', requireAuth, async (req, res) => {
     try {
-        const gallery = getGallery();
+        const gallery = await storage.getGallery();
         const index = gallery.findIndex(i => i.id === req.params.id);
         
         if (index === -1) {
@@ -312,30 +318,46 @@ app.put('/api/admin/gallery/:id', requireAuth, (req, res) => {
         }
 
         gallery[index] = { ...gallery[index], ...req.body };
-        saveGallery(gallery);
+        await storage.saveGallery(gallery);
+        
         res.json({ success: true, item: gallery[index] });
     } catch (error) {
+        console.error('Error updating gallery item:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-app.post('/api/admin/gallery/reorder', requireAuth, (req, res) => {
+app.post('/api/admin/gallery/reorder', requireAuth, async (req, res) => {
     try {
         const { items } = req.body;
-        saveGallery(items);
+        
+        if (!Array.isArray(items)) {
+            return res.status(400).json({ success: false, error: 'Items must be an array' });
+        }
+        
+        await storage.saveGallery(items);
         res.json({ success: true });
     } catch (error) {
+        console.error('Error reordering gallery:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Booking API endpoint
-app.post('/api/booking', async (req, res) => {
-    const { name, email, phone, date, time, service, message } = req.body;
+// ==================== Booking API ====================
 
+app.post('/api/booking', async (req, res) => {
     try {
+        const { name, email, phone, date, time, service, message } = req.body;
+
+        if (!name || !email || !phone || !date || !time || !service) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Please fill in all required fields' 
+            });
+        }
+
         const results = [];
-        const config = getConfig();
+        const config = await storage.getConfig();
         
         // Send email notification
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
@@ -349,7 +371,7 @@ app.post('/api/booking', async (req, res) => {
         }
 
         // Log to Google Sheets
-        if (process.env.GOOGLE_SHEETS_CREDENTIALS) {
+        if (process.env.GOOGLE_SHEETS_CREDENTIALS && process.env.GOOGLE_SHEET_ID) {
             try {
                 await logToGoogleSheets({ name, email, phone, date, time, service, message });
                 results.push('sheet updated');
@@ -370,8 +392,13 @@ app.post('/api/booking', async (req, res) => {
     }
 });
 
-// Email sending function
+// ==================== Helper Functions ====================
+
 async function sendBookingEmail(bookingData, config) {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        throw new Error('Email credentials not configured');
+    }
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -399,8 +426,11 @@ async function sendBookingEmail(bookingData, config) {
     await transporter.sendMail(mailOptions);
 }
 
-// Google Sheets logging function
 async function logToGoogleSheets(bookingData) {
+    if (!process.env.GOOGLE_SHEETS_CREDENTIALS || !process.env.GOOGLE_SHEET_ID) {
+        throw new Error('Google Sheets credentials not configured');
+    }
+
     try {
         const credentials = JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS);
         const auth = new google.auth.GoogleAuth({
@@ -436,4 +466,3 @@ async function logToGoogleSheets(bookingData) {
 
 // Export the Express app as a serverless function for Vercel
 module.exports = app;
-
