@@ -13,7 +13,7 @@ const sessionStore = require('../lib/session-store');
 
 const app = express();
 
-// Session configuration
+// Session configuration with safe defaults
 const sessionConfig = {
     secret: process.env.SESSION_SECRET || 'your-secret-key-change-this-in-production',
     resave: false,
@@ -26,9 +26,15 @@ const sessionConfig = {
     }
 };
 
-// Use Redis store if available, otherwise use memory store
-if (sessionStore) {
-    sessionConfig.store = sessionStore;
+// Use Redis store if available, otherwise use memory store (default)
+// This is safe - if sessionStore is null/undefined, Express uses memory store
+try {
+    if (sessionStore) {
+        sessionConfig.store = sessionStore;
+    }
+} catch (error) {
+    console.warn('Session store initialization failed, using memory store:', error.message);
+    // Continue with memory store (default)
 }
 
 app.use(session(sessionConfig));
@@ -38,11 +44,17 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve static files from public directory
-app.use(express.static(path.join(__dirname, '..', 'public'), {
-    maxAge: '1d',
-    etag: true,
-    lastModified: true
-}));
+// Wrap in try-catch to prevent crashes if directory doesn't exist
+try {
+    app.use(express.static(path.join(__dirname, '..', 'public'), {
+        maxAge: '1d',
+        etag: true,
+        lastModified: true
+    }));
+} catch (error) {
+    console.warn('Static file serving setup warning:', error.message);
+    // Continue - static files might not be critical for API routes
+}
 
 // Multer configuration for file uploads (memory storage for serverless)
 const upload = multer({
@@ -463,6 +475,25 @@ async function logToGoogleSheets(bookingData) {
         throw error;
     }
 }
+
+// Error handling middleware (must be last)
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    res.status(500).json({ 
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
+// 404 handler for API routes
+app.use((req, res) => {
+    // If it's an API route that doesn't exist, return JSON error
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+    // Otherwise, let it fall through to static file serving or return 404
+    res.status(404).send('Not found');
+});
 
 // Export the Express app as a serverless function for Vercel
 module.exports = app;
