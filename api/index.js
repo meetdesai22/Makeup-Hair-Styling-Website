@@ -7,9 +7,23 @@ const multer = require('multer');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 
-// Import storage abstraction and session store
-const storage = require('../lib/storage');
-const sessionStore = require('../lib/session-store');
+// Import storage abstraction and session store with error handling
+let storage;
+let sessionStore;
+
+try {
+    storage = require('../lib/storage');
+} catch (error) {
+    console.error('Failed to load storage module:', error);
+    throw error; // This is critical, so we should fail
+}
+
+try {
+    sessionStore = require('../lib/session-store');
+} catch (error) {
+    console.warn('Failed to load session store, using memory store:', error.message);
+    sessionStore = null; // Safe fallback
+}
 
 const app = express();
 
@@ -485,14 +499,9 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 404 handler for API routes
-app.use((req, res) => {
-    // If it's an API route that doesn't exist, return JSON error
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ error: 'Not found' });
-    }
-    // Otherwise, let it fall through to static file serving or return 404
-    res.status(404).send('Not found');
+// 404 handler - only for API routes
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: 'Not found' });
 });
 
 // Export the Express app as a serverless function for Vercel
