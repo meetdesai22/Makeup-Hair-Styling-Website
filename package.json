@@ -1,36 +1,26 @@
 {
   "name": "makeup-hair-styling-website",
-  "version": "1.0.0",
-  "description": "Website for makeup and hair styling freelancer",
-  "main": "server.js",
+  "version": "2.0.0",
+  "description": "Makeup and hair styling website built with Next.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
-  "keywords": [
-    "makeup",
-    "hair",
-    "styling",
-    "freelancer"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@vercel/blob": "^0.19.0",
     "@vercel/kv": "^0.2.0",
-    "body-parser": "^1.20.2",
-    "connect-redis": "^7.1.0",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-session": "^1.17.3",
-    "googleapis": "^126.0.1",
-    "multer": "^1.4.5-lts.1",
-    "nodemailer": "^7.0.12",
     "bcrypt": "^5.1.1",
-    "fs-extra": "^11.1.1",
-    "redis": "^4.6.12"
+    "fs-extra": "^11.3.3",
+    "googleapis": "^126.0.1",
+    "next": "^14.0.0",
+    "nodemailer": "^7.0.12",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0"
   }
 }
